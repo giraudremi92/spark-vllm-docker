@@ -1,0 +1,36 @@
+# Recipe: Qwen3.5-35B-A3B-FP8
+# Requires transformers 5 image (vllm-node-tf5) + fix for list/set RoPE bug
+
+recipe_version: "1"
+name: Qwen3.5-35B-A3B-FP8
+description: vLLM serving Qwen3.5-35B-A3B-FP8 avec support contexte long 262k
+
+model: Qwen/Qwen3.5-35B-A3B-FP8
+
+# Requires image built with --pre-tf flag
+container: vllm-node-tf5
+
+solo_only: true
+
+# Fix incompatibility entre vLLM qwen3_5_moe config et transformers 5
+mods:
+  - mods/fix-qwen3_5-moe-tf5
+
+defaults:
+  port: 8000
+  host: 0.0.0.0
+  gpu_memory_utilization: 0.7
+  max_model_len: 262144
+
+env: {}
+
+command: |
+  vllm serve Qwen/Qwen3.5-35B-A3B-FP8 \
+    --host {host} \
+    --port {port} \
+    --max-model-len {max_model_len} \
+    --gpu-memory-utilization {gpu_memory_utilization} \
+    --load-format fastsafetensors \
+    --enable-prefix-caching \
+    --enable-auto-tool-choice \
+    --tool-call-parser qwen3_coder \
